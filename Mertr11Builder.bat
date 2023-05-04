@@ -1,16 +1,28 @@
 @echo off
-if '%1' equ '/Active:Yes' goto pre
-mshta vbscript:createobject("shell.application").shellexecute("%~s0","/Active:Yes","","runas",1^)(window.close^) & exit /b
-:pre
-cls
 setlocal EnableExtensions EnableDelayedExpansion
+FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
+if '%1' equ '/?' (
+  echo Mertr11Builder
+  echo 系统精简镜像制作器 1.8
+  echo 用法:
+  echo Mertr11Builder [/Imgpath]
+  echo   /ImgPath  Windows镜像的位置
+  exit /b
+)
+:pre
+if '%1' equ '/Imgpath' ( echo Mertr11Builder找不到指定的路径 & exit /b )
+cls
 attrib -s -h -r %cd%
 cd /d %~dp0
-FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
 if %lg% equ 2052 (title Mertr 11系统精简镜像制作器) else (title Mertr 11 System streamlining Image Marker)
 if %lg% equ 2052 (echo Mertr 11 & echo 系统精简镜像制作器) else (echo Mertr 11 & echo  System streamlining Image Marker)
 echo By Xbodw.
 set "mountp="
+set "iso=%cd%\Mertr11.iso"
+:iso
+cls
+if %lg% equ 2052 (title Mertr 11系统精简镜像制作器) else (title Mertr 11 System streamlining Image Marker)
+if %lg% equ 2052 (echo Mertr 11 & echo 系统精简镜像制作器) else (echo Mertr 11 & echo  System streamlining Image Marker)
 if %lg% equ 2052 (set /p mountp=请输入ISO挂载盘符:) else (set /p mountp=Press the ISO Mount Drive:)
 if not exist %mountp% (
   if %lg% equ 2052 (
@@ -39,6 +51,7 @@ if not exist %mountp%\sources\install.wim (
     goto pre
   )
 )
+:go
 if not exist MakeDir md MakeDir
 if not exist Moud md Moud
 xcopy /s /i /e /y /o "%mountp%" MakeDir
@@ -71,12 +84,22 @@ if %lg% equ 2052 (echo 以下是未被删除的系统程序包: ) else (echo The
 for /f "tokens=2 delims=:| " %%s in ('dism /Image:Moud /Get-ProvisionedAppxPackages^|Find /i "_"') do (
   echo %%s|Find /i "Microsoft.WindowsStore" && echo off || (
    echo %%s|Find /i "Microsoft.DesktopAppInstaller" && echo off || dism /Image:Moud /Remove-ProvisionedAppxPackage /PackageName:%%s   >nul  2>nul
-   echo 卸载了程序包.
   )
 )
-rd "Moud\Program Files (x86)\Microsoft\Edge" /s /q
-rd "Moud\Program Files (x86)\Microsoft\EdgeUpdate" /s /q
+cls
+dism /Image:Moud /Cleanup-Image /StartComponentCleanup
+dism /Image:Moud /Cleanup-Image /StartComponentCleanup /ResetBase
+dism /Image:Moud /Apply-Unattend:autounattend.xml
+::rd "Moud\Program Files (x86)\Microsoft\Edge\" /s /q
+::rd "Moud\Program Files (x86)\Microsoft\EdgeUpdate" /s /q
 Reg load HKLM\tSYSTEM "Moud\Windows\System32\config\System" >nul
+Reg load HKLM\tSOFTWARE "Moud\Windows\System32\config\Software" >nul
+echo "HKEY_LOCAL_MACHINE\tSOFTWARE\Policies\Microsoft\Windows Defender"[7] > regi.ini
+echo "HKEY_LOCAL_MACHINE\tSYSTEM\CurrentControlSet\Services\SecurityHealthService"[7] >> regi.ini
+regini regi.ini
+de /f /q regi.ini
+reg add "HKLM\tSYSTEM\CurrentControlSet\Services\SecurityHealthService" /v Start -t REG_DWORD /d 4 /f >nul  2>nul
+reg add "HKLM\tSOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /d 1 /t REG_DWORD /f
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassCPUCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassRAMCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassSecureBootCheck" /t REG_DWORD /d "1" /f >nul 2>&1
@@ -84,6 +107,7 @@ Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassStorageCheck" /t REG_DWORD /d "
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassTPMCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\tSYSTEM\Setup\MoSetup" /v "AllowUpgradesWithUnsupportedTPMOrCPU" /t REG_DWORD /d "1" /f >nul 2>&1
 reg unload HKLM\tSYSTEM >nul
+reg unload HKLM\tSOFTWARE >nul
 cls
 if %lg% equ 2052 (title Mertr 11系统精简镜像制作器) else (title Mertr 11 System streamlining Image Marker)
 if %lg% equ 2052 (echo Mertr 11 & echo 系统精简镜像制作器) else (echo Mertr 11 & echo  System streamlining Image Marker)
@@ -95,10 +119,10 @@ ren MakeDir\sources\install-new.wim install.wim
 rd /s /q Moud
 copy /y autounattend.xml MakeDir\sources\autounattend.xml
 if exist MakeDir\sources\appraiserres.dll del /f /q MakeDir\sources\appraiserres.dll
-isomk.exe -m -o -u2 -udfver102 -bootdata:2#p0,e,bMakeDir\boot\etfsboot.com#pEF,e,bMakeDir\efi\microsoft\boot\efisys.bin MakeDir "%cd%\Mertr11.iso"
+isomk.exe -m -o -u2 -udfver102 -bootdata:2#p0,e,bMakeDir\boot\etfsboot.com#pEF,e,bMakeDir\efi\microsoft\boot\efisys.bin -l"Mertr11_X64FRE_Media" MakeDir "%isof%"
 rd /s /q MakeDir
 cls
 if %lg% equ 2052 (title Mertr 11系统精简镜像制作器) else (title Mertr 11 System streamlining Image Marker)
 if %lg% equ 2052 (echo Mertr 11 & echo 系统精简镜像制作器) else (echo Mertr 11 & echo  System streamlining Image Marker)
 if %lg% equ 2052 (echo 完成) else (echo Complate.)
-pause
+pause>nul
