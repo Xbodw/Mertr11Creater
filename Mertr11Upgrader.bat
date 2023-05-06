@@ -1,26 +1,24 @@
 @echo off
->nul 2 > &1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-if '%errorlevel%' NEQ '0' (
-goto UACPrompt
-) else ( goto gotAdmin )
+>nul 2>nul "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+if '%errorlevel%' NEQ '0' ( goto UACPrompt ) else ( goto gotAdmin )
 :UACPrompt
-echo Set UAC= CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
-cscript "%temp%\getadmin.vbs"
+echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+echo UAC.ShellExecute "%~s0","","","runas",1 >> "%temp%\getadmin.vbs"
+"%temp%\getadmin.vbs"
 exit /B
 :gotAdmin
 setlocal EnableExtensions EnableDelayedExpansion
-FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
 :pre
 cls
-attrib -s -h -r %cd%
 cd /d %~dp0
-if %lg% equ 2052 (title Mertr 11ÏµÍ³Éý¼¶Æ÷) else (title Mertr 11 System Upgrader)
-if %lg% equ 2052 (echo Mertr 11 & echo ÏµÍ³Éý¼¶Æ÷) else (echo Mertr 11 & echo  System Upgrader)
+attrib -s -h -r %cd%
+FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
+if %lg% equ 2052 (title Mertr 11ç³»ç»Ÿå‡çº§å™¨) else (title Mertr 11 System Upgrader)
+if %lg% equ 2052 (echo Mertr 11 & echo ç³»ç»Ÿå‡çº§å™¨) else (echo Mertr 11 & echo  System Upgrader)
 echo By Xbodw.
 set "mountp="
 echo=
-echo ÊÇ·ñÏÖÔÚ¿ªÊ¼¾«¼òµ±Ç°ÏµÍ³? 1.¾«¼ò 2.ÉÔºó¿¼ÂÇ
+echo æ˜¯å¦çŽ°åœ¨å¼€å§‹ç²¾ç®€å½“å‰ç³»ç»Ÿ? 1.ç²¾ç®€ 2.ç¨åŽè€ƒè™‘
 set /p fu=
 if '%fu%' neq '1' goto ex
 echo=
@@ -38,8 +36,8 @@ Reg add "HKLM\SYSTEM\Setup\LabConfig" /v "BypassSecureBootCheck" /t REG_DWORD /d
 Reg add "HKLM\SYSTEM\Setup\LabConfig" /v "BypassStorageCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\SYSTEM\Setup\LabConfig" /v "BypassTPMCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\SYSTEM\Setup\MoSetup" /v "AllowUpgradesWithUnsupportedTPMOrCPU" /t REG_DWORD /d "1" /f >nul 2>&1
-echo ÕýÔÚÐ¶ÔØ³ÌÐò°ü...
-echo  ÒÔÏÂÏÔÊ¾³öÃû×ÖµÄÔòÎªÎ´±»Ð¶ÔØµÄ³ÌÐò°ü
+echo æ­£åœ¨å¸è½½ç¨‹åºåŒ…...
+echo  ä»¥ä¸‹æ˜¾ç¤ºå‡ºåå­—çš„åˆ™ä¸ºæœªè¢«å¸è½½çš„ç¨‹åºåŒ…
 for /f "tokens=2 delims=:| " %%s in ('dism /Online /Get-ProvisionedAppxPackages^|Find /i "_"') do (
   echo %%s|Find /i "Microsoft.WindowsStore" && echo off || (
    echo %%s|Find /i "Microsoft.DesktopAppInstaller" && echo off || dism /Online /Remove-ProvisionedAppxPackage /PackageName:%%s   >nul  2>nul
@@ -47,7 +45,7 @@ for /f "tokens=2 delims=:| " %%s in ('dism /Online /Get-ProvisionedAppxPackages^
 copy /y WallPaper.jpg %Windir%\Web\4K\WallPaper\Windows\img0_1920x1200.jpg
 copy /y WallPaper.jpg %Windir%\Web\WallPaper\Windows\img0.jpg
 echo=
-echo ÏµÍ³ÐÞ¸ÄÍê³É.
+echo ç³»ç»Ÿä¿®æ”¹å®Œæˆ.
 shitdown /r -t 00
 :ex
 pause>nul
