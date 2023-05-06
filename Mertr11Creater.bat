@@ -1,16 +1,16 @@
 @echo off
+>nul 2 > &1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+if '%errorlevel%' NEQ '0' (
+goto UACPrompt
+) else ( goto gotAdmin )
+:UACPrompt
+echo Set UAC= CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
+cscript "%temp%\getadmin.vbs"
+exit /B
+:gotAdmin
 setlocal EnableExtensions EnableDelayedExpansion
 FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
-if '%1' equ '/?' (
-  echo Mertr11Builder
-  echo 系统精简镜像制作器 1.8
-  echo 用法:
-  echo Mertr11Builder [/Imgpath]
-  echo   /ImgPath  Windows镜像的位置
-  exit /b
-)
-:pre
-if '%1' equ '/Imgpath' ( echo Mertr11Builder找不到指定的路径 & exit /b )
 cls
 attrib -s -h -r %cd%
 cd /d %~dp0
@@ -106,6 +106,9 @@ Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassSecureBootCheck" /t REG_DWORD /
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassStorageCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\tSYSTEM\Setup\LabConfig" /v "BypassTPMCheck" /t REG_DWORD /d "1" /f >nul 2>&1
 Reg add "HKLM\tSYSTEM\Setup\MoSetup" /v "AllowUpgradesWithUnsupportedTPMOrCPU" /t REG_DWORD /d "1" /f >nul 2>&1
+copy /y WallPaper.jpg Moud\Windows\Web\4K\WallPaper\Windows\img0_1920x1200.jpg
+copy /y WallPaper.jpg Moud\Windows\Web\WallPaper\Windows\img0.jpg
+Reg add "HKLM\tSOFTWARE\Policies\Microsoft\Windows\Personalization" /v LockScreenImage /t REG_SZ /d "%%Windir%%\Web\WallPaper\Windows\img0.jpg" /f >nul  2>&1
 reg unload HKLM\tSYSTEM >nul
 reg unload HKLM\tSOFTWARE >nul
 cls
