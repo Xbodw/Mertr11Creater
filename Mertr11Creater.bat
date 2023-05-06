@@ -1,19 +1,17 @@
 @echo off
->nul 2 > &1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-if '%errorlevel%' NEQ '0' (
-goto UACPrompt
-) else ( goto gotAdmin )
+>nul 2>nul "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+if '%errorlevel%' NEQ '0' ( goto UACPrompt ) else ( goto gotAdmin )
 :UACPrompt
-echo Set UAC= CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
-cscript "%temp%\getadmin.vbs"
+echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\arats.vbs"
+echo UAC.ShellExecute "%~s0","","","runas",1 >> "%temp%\arats.vbs"
+"%temp%\arats.vbs"
 exit /B
 :gotAdmin
 setlocal EnableExtensions EnableDelayedExpansion
 FOR /F "tokens=2 delims==" %%a IN ('wmic os get OSLanguage /Value') DO set lg=%%a
 cls
-attrib -s -h -r %cd%
 cd /d %~dp0
+attrib -s -h -r %cd%
 if %lg% equ 2052 (title Mertr 11系统精简镜像制作器) else (title Mertr 11 System streamlining Image Marker)
 if %lg% equ 2052 (echo Mertr 11 & echo 系统精简镜像制作器) else (echo Mertr 11 & echo  System streamlining Image Marker)
 echo By Xbodw.
